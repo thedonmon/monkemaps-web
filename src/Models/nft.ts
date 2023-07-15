@@ -1,5 +1,8 @@
+import { Asset } from "../types/helius";
+
 export type NftData = {
   mint: string;
+  name: string;
   updateAuthority: string;
   data: {
     creators: any[];
@@ -16,6 +19,7 @@ export type NftData = {
   edition?: string;
   imageUri?: string;
   nftNumber?: string;
+  collection?: string;
 };
 
 export enum MetadataKey {
@@ -65,4 +69,32 @@ export interface File {
   uri?: string;
   type?: string;
   cdn?: boolean;
+}
+
+
+export function mapAssetToNftData(asset: Asset): NftData {
+  const imageFile = asset.content?.files?.find(
+    (file) => file.mime?.includes('image/')
+  );
+  return {
+    mint: asset.id || '',
+    updateAuthority: '',
+    data: {
+      creators: asset.creators || [],
+      name: asset.content?.metadata?.name || '',
+      symbol: asset.content?.metadata?.symbol || '',
+      uri: asset.content?.json_uri || '',
+      sellerFeeBasisPoints: 0,
+    },
+    key: MetadataKey.MetadataV1,
+    primarySaleHappened: asset.royalty?.primary_sale_happened || false,
+    isMutable: asset.mutable || false,
+    editionNonce: 0,
+    masterEdition: '',
+    edition: '',
+    imageUri: imageFile ? imageFile.uri : '',
+    nftNumber: '',
+    name: asset.content?.metadata?.name || '',
+    collection: asset.grouping?.find((group) => group.group_key === 'collection')?.group_value || '',
+  };
 }

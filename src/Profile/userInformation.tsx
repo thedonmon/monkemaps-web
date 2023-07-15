@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { getParsedNftAccountsByOwner } from '@nfteyez/sol-rayz';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 
@@ -8,11 +7,13 @@ import { useActor } from '@xstate/react';
 import { lookupPlaces, UserMachine } from './machine';
 
 import './userInformation.css';
-import { NftData, MetaData } from '../Models/nft';
-import axios from 'axios';
-import { chunkItems } from '../utils/promises';
-import { MDInput, MDDropdownSearch, MDSwitch, MDCheckbox } from '../design';
+import { NftData, mapAssetToNftData } from '../Models/nft';
+import { MDInput, MDDropdownSearch, MDSwitch } from '../design';
 import { clearToken, getToken } from '../utils/tokenUtils';
+import { searchAssetsByCollection } from '../utils/heliusrpc';
+import { Asset } from '../types/helius';
+import { getEnv } from '../utils/general';
+import { toast } from 'react-toastify';
 
 export const UserInformation = (): JSX.Element => {
   const { wallet, publicKey, connecting } = useWallet();
@@ -21,16 +22,6 @@ export const UserInformation = (): JSX.Element => {
   const [nftArrayLoading, setNftArrayLoading] = useState(true);
   const [nftArray, setNftArray] = useState<NftData[]>([]);
   const walletId = publicKey?.toBase58();
-  //Hack until redeployed to a different server and domain name is remapped
-  const getUpdateAuthority = (): string => {
-    //check for old update authority
-    if (process.env.REACT_APP_NFT_UA === '9uBX3ASjxWvNBAD1xjbVaKA74mWGZys3RGSF7DdeDD3F') {
-      return 'mdaoxg4DVGptU4WSpzGyVpK3zqsgn7Qzx5XNgWTcEA2' //new update authority
-    }
-    else {
-      return process.env.REACT_APP_NFT_UA as string
-    }
-  }
   const navigate = useNavigate();
   const [state, send] = useActor(
     UserMachine.get({ wallet: walletContext, connection }),
@@ -57,24 +48,15 @@ export const UserInformation = (): JSX.Element => {
       setNftArray([]);
       let nftResult: NftData[] = [];
       if (walletId) {
-        nftResult = await getParsedNftAccountsByOwner({
-          publicAddress: walletId,
-          connection,
+        const promiseAllResult = await Promise.all([searchAssetsByCollection(walletId, getEnv('COLLECTION')), searchAssetsByCollection(walletId, getEnv('COLLECTION2'))]);
+        nftResult = (promiseAllResult as Asset[][]).flatMap(x => { return x.map(asset => mapAssetToNftData(asset)) });
+        console.log(nftResult)
+        nftResult = nftResult.map((item, index) => {
+          const titleArray = item.name?.split('#');
+          item.nftNumber = titleArray ? `${titleArray[1]}` : '';
+          return item
         });
-        nftResult = nftResult.filter(
-          (x) => x.updateAuthority === getUpdateAuthority(),
-        );
-        const nftChunks = chunkItems(nftResult);
-        for (const chunk of nftChunks) {
-          await Promise.all(
-            chunk.map(async (item, index) => {
-              const result = await axios.get<MetaData>(item.data.uri);
-              item.imageUri = result.data.image;
-              const titleArray = result?.data?.name?.split('#');
-              item.nftNumber = titleArray ? `${titleArray[1]}` : '';
-            }),
-          );
-        }
+
       }
       if (!active) {
         return;
@@ -118,7 +100,7 @@ export const UserInformation = (): JSX.Element => {
       <div className="Profile__container">
         <div className="Profile__header">
           <Link className="Profile__back-link" to="/map">
-            <button className="Profile__back button" onClick={() => {}}>
+            <button className="Profile__back button" onClick={() => { }}>
               <img
                 className="Profile__back-icon"
                 src="/MonkeDAO_Icons_Col/MonkeDAO_Icons_Working-89.svg"
@@ -136,7 +118,7 @@ export const UserInformation = (): JSX.Element => {
                 Cancel
               </button>
             )}
-            {!nftArrayLoading && ['edit', 'create'].some(state.matches) &&  (
+            {!nftArrayLoading && ['edit', 'create'].some(state.matches) && (
               <button
                 className="Profile__save button button--save"
                 onClick={() => send('SAVE')}
@@ -159,11 +141,10 @@ export const UserInformation = (): JSX.Element => {
             <div className="Profile__section">
               <div className="Profile__gallery-container">
                 <h2
-                  className={`Profile__title ${
-                    monkeSelectionError
+                  className={`Profile__title ${monkeSelectionError
                       ? 'Profile__monke-selection-text--error'
                       : ''
-                  }`}
+                    }`}
                 >
                   Monkes *
                 </h2>
@@ -183,27 +164,33 @@ export const UserInformation = (): JSX.Element => {
                 ) : (
                   <div className="Profile__gallery">
                     {nftArray
-                      .sort((a, b) => a.mint.localeCompare(b.mint))
+                      .sort((a, b) => a.name.localeCompare(b.name))
                       .map((x) => (
                         <div
                           key={x.mint}
-                          className={`nft_gallery ${
-                            x.mint === nft.id ? 'nft_gallery--selected' : ''
-                          }`}
+                          className={`nft_gallery ${x.mint === nft.id ? 'nft_gallery--selected' : ''
+                            }`}
                         >
                           <img
                             className="nft_gallery_img"
                             alt="smb"
                             src={x.imageUri}
-                            onClick={() =>
-                              send({
-                                type: 'SELECT_MONK',
-                                nft: {
-                                  id: x.mint,
-                                  imageUri: x.imageUri,
-                                  monkeNumber: x.nftNumber,
-                                },
-                              })
+                            onClick={() => {
+                              if (x.collection && x.collection === getEnv('COLLECTION2')) {
+                                toast.error('This collection is not allowed to be selected yet! Coming soon!');
+
+                              } else {
+                                send({
+                                  type: 'SELECT_MONK',
+                                  nft: {
+                                    id: x.mint,
+                                    imageUri: x.imageUri,
+                                    monkeNumber: x.nftNumber,
+                                  },
+                                })
+                              }
+
+                            }
                             }
                           ></img>
                         </div>
