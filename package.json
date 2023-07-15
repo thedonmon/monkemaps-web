@@ -6,7 +6,6 @@
     "@chakra-ui/react": "^2.2.3",
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
-    "@nfteyez/sol-rayz": "^0.10.2",
     "@popperjs/core": "^2.11.5",
     "@solana/wallet-adapter-base": "^0.9.22",
     "@solana/wallet-adapter-react": "^0.15.32",
