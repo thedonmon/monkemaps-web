@@ -1,20 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { getParsedNftAccountsByOwner } from '@nfteyez/sol-rayz';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import React, {  } from 'react';
+import { Link, useParams } from 'react-router-dom';
 
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 
 import { useMachine } from '@xstate/react';
 import { createUserMachine } from './machine';
 
 import './userInformation.css';
 import './viewUser.css';
-import { NftData, MetaData } from '../Models/nft';
-import axios from 'axios';
-import { chunkItems } from '../utils/promises';
-import { MDInput, MDDropdownSearch } from '../design';
-import { CONSTANTS } from '../constants';
 
 export const ViewUserInformation = (): JSX.Element => {
   const { monkeId } = useParams();
