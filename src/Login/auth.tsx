@@ -21,8 +21,7 @@ import {
 } from '@chakra-ui/react';
 
 //import './auth.css'
-
-const bs58 = require('bs58');
+import bs58 from 'bs58';
 
 export type LoginProps = {
   setToken: (token: any) => any;

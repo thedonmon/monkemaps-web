@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import mapboxgl from 'mapbox-gl/dist/mapbox-gl-csp';
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import MapboxWorker from 'worker-loader!mapbox-gl/dist/mapbox-gl-csp-worker'; // Load worker code separately with worker-loader
+import MapboxWorker from 'mapbox-gl/dist/mapbox-gl-csp-worker?worker'; // Load worker code separately with worker-loader
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -19,7 +19,7 @@ import { LocationList } from './locationList';
 import { Rendered, Supercluster } from './supercluster';
 import { toast } from 'react-toastify';
 import { CONSTANTS } from '../constants';
-mapboxgl.workerClass = MapboxWorker; // Wire up loaded worker to be used instead of the default
+//mapboxgl.workerClass = new Worker(new URL(MapboxWorker, import.meta.url), {type: 'module'});
 
 mapboxgl.accessToken = CONSTANTS.MAPBOX_ACCESS_TOKEN;
 

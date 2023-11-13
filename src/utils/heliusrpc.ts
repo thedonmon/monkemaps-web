@@ -3,8 +3,8 @@ import { SearchAssetRequest, AssetsResponse, Asset } from "../types/helius";
 
 
 export const searchAssetsByCollection = async (ownerAddress: string, collection: string): Promise<Asset[]> => {
-    const url = process.env.REACT_APP_HELIUS_RPC
-    if (!url) throw new Error('REACT_APP_HELIUS_RPC not set');
+    const url = process.env.VITE_HELIUS_RPC
+    if (!url) throw new Error('VITE_HELIUS_RPC not set');
     const responseAssets: Asset[] = [];
     try {
         const searchAssetsRequest: SearchAssetRequest = {

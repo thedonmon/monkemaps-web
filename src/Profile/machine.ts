@@ -29,8 +29,7 @@ import {
 } from '@solana/web3.js';
 import { toast } from 'react-toastify';
 import { getToken, clearToken } from '../utils/tokenUtils';
-
-const bs58 = require('bs58');
+import bs58 from 'bs58';
 
 const nanoid = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',

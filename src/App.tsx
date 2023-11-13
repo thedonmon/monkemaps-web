@@ -30,7 +30,6 @@ import { Login } from './Login/auth';
 import useToken from './Hooks/useToken';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import { Fonts } from './design/fonts/Font';
-window.Buffer = window.Buffer || require("buffer").Buffer;
 const theme = extendTheme({
   fonts: {
     heading: 'Space Grotesk',
@@ -41,7 +40,7 @@ const theme = extendTheme({
 export const App = () => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
   const network =
-    (process.env.REACT_APP_SOLANA_ENV as WalletAdapterNetwork) ??
+    (process.env.VITE_SOLANA_ENV as WalletAdapterNetwork) ??
     WalletAdapterNetwork.Devnet;
   const rpc = 'https://monke8127d577985245538ac648fe0969201d.xyz2.hyperplane.dev/';
   let networkUrl = rpc?.includes('https') ? rpc : clusterApiUrl(network);
